@@ -1,0 +1,32 @@
+plugins:
+  - rubocop-minitest
+  - rubocop-rake
+
+AllCops:
+  NewCops: enable
+  TargetRubyVersion: 3.2
+  Exclude:
+    - 'vendor/**/*'
+    - 'tmp/**/*'
+    - 'pkg/**/*'
+
+Metrics/BlockLength:
+  Exclude:
+    - 'test/**/*'
+    - 'duckdb.gemspec'
+
+Metrics/ClassLength:
+  Exclude:
+    - 'test/**/*_test.rb'
+    - 'lib/duckdb/prepared_statement.rb'
+    - 'lib/duckdb/appender.rb'
+
+Metrics/ModuleLength:
+  Exclude:
+    - 'lib/duckdb/converter.rb'
+
+Style/Documentation:
+  Enabled: false
+
+Layout/LineLength:
+  Max: 120
