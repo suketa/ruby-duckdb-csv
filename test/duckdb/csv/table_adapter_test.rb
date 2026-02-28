@@ -20,7 +20,7 @@ module DuckDB
         csv_io = StringIO.new("id,name,age\n1,Alice,30\n2,Bob,25\n3,Charlie,35")
         csv = ::CSV.new(csv_io, headers: true)
 
-        TableAdapter.register!
+        DuckDB::CSV::TableAdapter.register!
 
         @con.execute('SET threads=1') # Required for TableFunction to work correctly in single-threaded mode
         @con.expose_as_table(csv, 'csv_table')
