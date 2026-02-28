@@ -2,7 +2,7 @@
 
 require 'duckdb'
 require 'csv'
-require_relative './version'
+require_relative 'version'
 
 module DuckDB
   module CSV
