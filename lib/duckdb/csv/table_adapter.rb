@@ -23,30 +23,33 @@ module DuckDB
       private
 
       def write_row(csv, output)
-        line = csv.readline
-        if line
-          if line.is_a?(::CSV::Row)
-            line.each_with_index { |cell, index| output.set_value(index, 0, cell[1]) }
-          else
-            line.each_with_index { |cell, index| output.set_value(index, 0, cell) }
-          end
-          1
-        else
+        row = csv.readline
+
+        if row.nil?
           csv.rewind
-          0
+          return 0
         end
+
+        ary = row.is_a?(::CSV::Row) ? row.fields : row
+        ary.each_with_index { |cell, index| output.set_value(index, 0, cell) }
+        1
       end
 
       def infer_columns(csv)
-        columns = {}
-        if csv.headers
-          headers = csv.first.headers
-          columns = headers.to_h { |header| [header, DuckDB::LogicalType::VARCHAR] }
-        else
-          csv.first.size.times { |i| columns["col#{i + 1}"] = DuckDB::LogicalType::VARCHAR }
-        end
+        columns = csv.headers ? headers_to_columns(csv) : create_columns_from_first_row(csv)
         csv.rewind
         columns
+      end
+
+      def headers_to_columns(csv)
+        csv.first.headers.to_h { |header| [header, DuckDB::LogicalType::VARCHAR] }
+      end
+
+      def create_columns_from_first_row(csv)
+        first_row = csv.first
+        first_row.size.times.with_object({}) do |i, columns|
+          columns["col#{i + 1}"] = DuckDB::LogicalType::VARCHAR
+        end
       end
     end
   end
