@@ -25,7 +25,11 @@ module DuckDB
       def write_row(csv, output)
         line = csv.readline
         if line
-          line.each_with_index { |cell, index| output.set_value(index, 0, cell[1]) }
+          if line.is_a?(::CSV::Row)
+            line.each_with_index { |cell, index| output.set_value(index, 0, cell[1]) }
+          else
+            line.each_with_index { |cell, index| output.set_value(index, 0, cell) }
+          end
           1
         else
           csv.rewind
@@ -34,9 +38,15 @@ module DuckDB
       end
 
       def infer_columns(csv)
-        headers = csv.first.headers
+        columns = {}
+        if csv.headers
+          headers = csv.first.headers
+          columns = headers.to_h { |header| [header, DuckDB::LogicalType::VARCHAR] }
+        else
+          csv.first.size.times { |i| columns["col#{i + 1}"] = DuckDB::LogicalType::VARCHAR }
+        end
         csv.rewind
-        headers.to_h { |header| [header, DuckDB::LogicalType::VARCHAR] }
+        columns
       end
     end
   end
