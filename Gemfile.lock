@@ -2,7 +2,7 @@ PATH
   remote: .
   specs:
     duckdb-csv (0.0.1)
-      csv
+      csv (>= 3.2.0)
       duckdb (>= 1.4.4.0)
 
 GEM
