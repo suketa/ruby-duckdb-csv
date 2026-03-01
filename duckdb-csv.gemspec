@@ -28,6 +28,6 @@ Gem::Specification.new do |spec|
   end
   spec.require_paths = ['lib']
   spec.required_ruby_version = '>= 3.2.0'
-  spec.add_dependency 'csv'
+  spec.add_dependency 'csv', '>= 3.2.0'
   spec.add_dependency 'duckdb', '>= 1.4.4.0'
 end
