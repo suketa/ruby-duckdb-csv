@@ -31,7 +31,11 @@ module DuckDB
         end
 
         ary = row.is_a?(::CSV::Row) ? row.fields : row
-        ary.each_with_index { |cell, index| output.set_value(index, 0, cell) }
+        ary.each_with_index do |cell, index|
+          type = output.get_vector(index).logical_type
+          cell = DuckDB.cast(cell, type)
+          output.set_value(index, 0, cell)
+        end
         1
       end
 
