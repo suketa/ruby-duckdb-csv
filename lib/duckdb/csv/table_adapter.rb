@@ -53,13 +53,13 @@ module DuckDB
       end
 
       def headers_to_columns(csv)
-        csv.first.headers.to_h { |header| [header, DuckDB::LogicalType::VARCHAR] }
+        csv.first.headers.to_h { |header| [header, :varchar] }
       end
 
       def create_columns_from_first_row(csv)
         first_row = csv.first
         first_row.size.times.with_object({}) do |i, columns|
-          columns["col#{i + 1}"] = DuckDB::LogicalType::VARCHAR
+          columns["col#{i + 1}"] = :varchar
         end
       end
     end
