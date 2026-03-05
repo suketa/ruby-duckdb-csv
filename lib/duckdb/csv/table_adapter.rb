@@ -30,13 +30,20 @@ module DuckDB
           return 0
         end
 
-        ary = row.is_a?(::CSV::Row) ? row.fields : row
-        ary.each_with_index do |cell, index|
-          type = output.get_vector(index).logical_type
-          cell = DuckDB.cast(cell, type)
-          output.set_value(index, 0, cell)
-        end
+        write_fields(extract_fields(row), output)
         1
+      end
+
+      def extract_fields(row)
+        row.is_a?(::CSV::Row) ? row.fields : row
+      end
+
+      def write_fields(fields, output)
+        fields.each_with_index do |field, index|
+          type = output.get_vector(index).logical_type
+          field = DuckDB.cast(field, type)
+          output.set_value(index, 0, field)
+        end
       end
 
       def infer_columns(csv)
