@@ -30,9 +30,20 @@ module DuckDB
           return 0
         end
 
-        ary = row.is_a?(::CSV::Row) ? row.fields : row
-        ary.each_with_index { |cell, index| output.set_value(index, 0, cell) }
+        write_fields(extract_fields(row), output)
         1
+      end
+
+      def extract_fields(row)
+        row.is_a?(::CSV::Row) ? row.fields : row
+      end
+
+      def write_fields(fields, output)
+        fields.each_with_index do |field, index|
+          type = output.get_vector(index).logical_type
+          field = DuckDB.cast(field, type)
+          output.set_value(index, 0, field)
+        end
       end
 
       def infer_columns(csv)
@@ -42,13 +53,13 @@ module DuckDB
       end
 
       def headers_to_columns(csv)
-        csv.first.headers.to_h { |header| [header, DuckDB::LogicalType::VARCHAR] }
+        csv.first.headers.to_h { |header| [header, :varchar] }
       end
 
       def create_columns_from_first_row(csv)
         first_row = csv.first
         first_row.size.times.with_object({}) do |i, columns|
-          columns["col#{i + 1}"] = DuckDB::LogicalType::VARCHAR
+          columns["col#{i + 1}"] = :varchar
         end
       end
     end
