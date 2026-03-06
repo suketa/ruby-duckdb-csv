@@ -70,17 +70,15 @@ module DuckDB
             'created_at' => :timestamp
           }
         )
-        result = @con.query('SELECT id, name, age, birthday, created_at FROM csv_table()').to_a
+        result = @con.query('SELECT id, name, age, birthday, created_at, height FROM csv_table()').to_a
 
-        assert_equal [1, 'Alice', 30, Date.new(1990, 1, 2), Time.local(2023, 1, 1, 10, 11, 12)], result[0]
-        assert_equal [2, 'Bob', 25, Date.new(1995, 5, 15), Time.local(2024, 2, 3, 11, 12, 13)], result[1]
-        assert_equal [3, 'Charlie', 35, Date.new(1985, 10, 30), Time.local(2025, 4, 5, 12, 13, 14)], result[2]
+        assert_equal [1, 'Alice', 30, Date.new(1990, 1, 2), Time.local(2023, 1, 1, 10, 11, 12)], result[0][0..4]
+        assert_equal [2, 'Bob', 25, Date.new(1995, 5, 15), Time.local(2024, 2, 3, 11, 12, 13)], result[1][0..4]
+        assert_equal [3, 'Charlie', 35, Date.new(1985, 10, 30), Time.local(2025, 4, 5, 12, 13, 14)], result[2][0..4]
 
-        result = @con.query('SELECT height FROM csv_table()').to_a
-
-        assert_in_delta 1.65, result[0][0], 0.0001
-        assert_in_delta 1.80, result[1][0], 0.0001
-        assert_in_delta 1.75, result[2][0], 0.0001
+        assert_in_delta 1.65, result[0][-1], 0.0001
+        assert_in_delta 1.80, result[1][-1], 0.0001
+        assert_in_delta 1.75, result[2][-1], 0.0001
       end
 
       def test_s_register_with_select_columns
