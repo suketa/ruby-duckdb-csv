@@ -1,0 +1,40 @@
+name: Linter
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  rubocop:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download duckdb
+        run: |
+          curl -sLO https://github.com/duckdb/duckdb/releases/download/v1.4.4/libduckdb-linux-amd64.zip
+          mkdir -p duckdb-v1.4.4
+          unzip libduckdb-linux-amd64.zip -d duckdb-v1.4.4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+
+      - name: bundle install
+        run: |
+          bundle config build.duckdb "--with-duckdb-include=${GITHUB_WORKSPACE}/duckdb-v1.4.4 --with-duckdb-lib=${GITHUB_WORKSPACE}/duckdb-v1.4.4"
+          bundle install --jobs 4 --retry 3
+
+      - name: Run RuboCop
+        run: bundle exec rubocop

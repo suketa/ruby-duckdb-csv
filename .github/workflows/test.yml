@@ -1,0 +1,76 @@
+name: Test
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        ruby: ['3.2', '3.3', '3.4']
+        duckdb: ['1.4.4']
+        include:
+          - os: ubuntu-latest
+            duckdb_asset: libduckdb-linux-amd64.zip
+          - os: macos-latest
+            duckdb_asset: libduckdb-osx-universal.zip
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: duckdb cache
+      id: duckdb-cache
+      uses: actions/cache@v4
+      with:
+        path: duckdb-v${{ matrix.duckdb }}
+        key: ${{ runner.os }}-duckdb-v${{ matrix.duckdb }}
+
+    - name: Download duckdb ${{ matrix.duckdb }}
+      if: steps.duckdb-cache.outputs.cache-hit != 'true'
+      run: |
+        curl -sLO https://github.com/duckdb/duckdb/releases/download/v${{ matrix.duckdb }}/${{ matrix.duckdb_asset }}
+        mkdir -p duckdb-v${{ matrix.duckdb }}
+        unzip ${{ matrix.duckdb_asset }} -d duckdb-v${{ matrix.duckdb }}
+
+    - name: Set up Ruby ${{ matrix.ruby }}
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: ${{ matrix.ruby }}
+
+    - name: bundle install
+      run: |
+        bundle config build.duckdb "--with-duckdb-include=${GITHUB_WORKSPACE}/duckdb-v${{ matrix.duckdb }} --with-duckdb-lib=${GITHUB_WORKSPACE}/duckdb-v${{ matrix.duckdb }}"
+        bundle install --jobs 4 --retry 3
+
+    - name: Run tests (Linux)
+      if: runner.os == 'Linux'
+      run: |
+        export LD_LIBRARY_PATH=${GITHUB_WORKSPACE}/duckdb-v${{ matrix.duckdb }}:${LD_LIBRARY_PATH}
+        bundle exec rake test
+
+    - name: Run tests (macOS)
+      if: runner.os == 'macOS'
+      run: |
+        export DYLD_LIBRARY_PATH=${GITHUB_WORKSPACE}/duckdb-v${{ matrix.duckdb }}:${DYLD_LIBRARY_PATH}
+        bundle exec rake test
+
+  post-test:
+    name: All tests passed
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - run: echo ok
