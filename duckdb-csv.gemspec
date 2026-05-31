@@ -27,7 +27,7 @@ Gem::Specification.new do |spec|
     `git ls-files -z`.split("\x0").reject { |f| f.match(%r{^(test|spec|features)/}) }
   end
   spec.require_paths = ['lib']
-  spec.required_ruby_version = '>= 3.2.0'
+  spec.required_ruby_version = '>= 3.3.0'
   spec.add_dependency 'csv', '>= 3.2.0'
-  spec.add_dependency 'duckdb', '>= 1.4.4.0'
+  spec.add_dependency 'duckdb', '>= 1.5.0.0'
 end
